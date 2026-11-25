@@ -1,0 +1,8 @@
+stage,layers,output_shape,parameters
+Block 1,2x[Conv3x3-BN-ReLU] + MaxPool2x2,32x112x112,10208
+Block 2,2x[Conv3x3-BN-ReLU] + MaxPool2x2,64x56x56,55552
+Block 3,2x[Conv3x3-BN-ReLU] + MaxPool2x2,128x28x28,221696
+Block 4,2x[Conv3x3-BN-ReLU] + MaxPool2x2,256x14x14,885760
+Global avg pool,AdaptiveAvgPool2d(1),256x1x1,0
+Head,"Linear(256,64)-ReLU-Dropout(0.3)-Linear(64,2)",2,16578
+Total,,2 logits,1189794

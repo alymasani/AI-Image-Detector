@@ -1,0 +1,29 @@
+# Software smoke test on SYNTHETIC fixtures (.dev/fixtures). Results are NOT GenImage results.
+inherits: cnn.yaml
+experiment_name: smoke_cnn
+
+data:
+  root: .dev/fixtures/synthetic_genimage
+  manifest_dir: .dev/fixtures/manifests
+  num_workers: 0
+
+training:
+  batch_size: 8
+  max_epochs: 3
+  early_stopping_patience: 2
+  log_every_batches: 2
+
+output:
+  runs_dir: .dev/temporary_results/runs
+  checkpoints_dir: .dev/temporary_results/checkpoints
+
+# Overrides merged over configs/experiments.yaml when building the synthetic manifests.
+dataset:
+  root: .dev/fixtures/synthetic_genimage
+  manifest_dir: .dev/fixtures/manifests
+splits:
+  train_per_class: 24
+  val_per_class: 8
+  test_familiar_per_class: 8
+  test_unseen_ai: 8
+  test_unseen_native_real: 8

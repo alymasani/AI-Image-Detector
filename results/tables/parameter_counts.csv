@@ -1,0 +1,3 @@
+model,initialization,total,trainable,non_trainable
+cnn,"random (Kaiming/Xavier), trained from scratch",1189794,1189794,0
+resnet18,"Torchvision ResNet18_Weights.IMAGENET1K_V1, new 2-way fc, fully fine-tuned",11177538,11177538,0

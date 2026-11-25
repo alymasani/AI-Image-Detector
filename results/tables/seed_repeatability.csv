@@ -1,0 +1,5 @@
+model,test,completed_runs,accuracy_mean,accuracy_std,f1_mean,f1_std,auroc_mean,auroc_std
+Custom CNN,test_sd,0,,,,,,
+Custom CNN,test_mj,0,,,,,,
+ResNet-18,test_sd,0,,,,,,
+ResNet-18,test_mj,0,,,,,,

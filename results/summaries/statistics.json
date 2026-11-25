@@ -1,0 +1,10 @@
+{
+  "n_resamples": 2000,
+  "seed": 519,
+  "threshold": 0.5,
+  "bootstrap": {},
+  "cross_generator": {},
+  "paired_models": {},
+  "mcnemar": {},
+  "notes": "Stratified percentile bootstrap over test images of FIXED checkpoints; not training-seed variability. Multiple comparisons are uncorrected (exploratory)."
+}

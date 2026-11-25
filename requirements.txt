@@ -1,0 +1,14 @@
+# Runtime dependencies. Install PyTorch first if you need a specific CUDA build:
+#   https://pytorch.org/get-started/locally/   (e.g. pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121)
+# Versions below were verified on Python 3.9.6 / macOS (Apple M4, MPS). Any recent compatible release should work.
+torch>=2.1
+torchvision>=0.16
+numpy>=1.24
+pillow>=10.0
+scikit-learn>=1.3
+scipy>=1.10
+matplotlib>=3.7
+pandas>=2.0
+pyyaml>=6.0
+tqdm>=4.65
+imagehash>=4.3      # perceptual hashing for near-duplicate detection

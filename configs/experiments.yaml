@@ -1,0 +1,86 @@
+# Dataset layout, split design and experiment suite shared by every model.
+# Paths are relative to the repository root unless absolute. The dataset root can be
+# overridden with --data-root or the GENIMAGE_ROOT environment variable.
+
+dataset:
+  root: data/genimage
+  manifest_dir: manifests
+  # Relative paths (under root) of the folders that contain train/ and val/ after extraction.
+  # The README tree uses "Stable Diffusion V1.4"; the Google Drive folder is "stable_diffusion_v_1_4"
+  # and archives may add a wrapper dir. `python scripts/prepare_data.py check` lists candidates.
+  generators:
+    sdv14:
+      folder: "Stable Diffusion V1.4"
+    midjourney:
+      folder: "Midjourney"
+  ai_subdir: ai
+  real_subdir: nature
+  image_extensions: [".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff"]
+
+splits:
+  seed: 42
+  # Per-class counts (real = per class 0, generated = per class 1).
+  train_per_class: 20000          # from sdv14/train  -> 40,000 total
+  val_per_class: 2000             # from sdv14/val    -> 4,000 total
+  test_familiar_per_class: 2000   # from sdv14/val, disjoint from val -> 4,000 total
+  test_unseen_ai: 2000            # from midjourney/val/ai (topped up from midjourney/train/ai if short)
+  test_unseen_native_real: 2000   # from midjourney/val/nature, secondary evaluation only
+  near_duplicate_hamming: 4       # pHash Hamming distance reported as a near-duplicate candidate
+
+# Manifest names produced by `python scripts/prepare_data.py manifests`.
+manifests:
+  train: train.csv
+  val: val.csv
+  test_sd: test_sd.csv                  # familiar generator (primary)
+  test_mj: test_mj.csv                  # unseen generator, SAME real photos as test_sd (primary, controlled)
+  test_mj_native: test_mj_native.csv    # unseen generator with Midjourney-folder real photos (secondary)
+
+evaluation:
+  threshold: 0.5
+  primary_tests: [test_sd, test_mj]
+  secondary_tests: [test_mj_native]
+  robustness_jpeg_qualities: [90, 75, 50]
+  bootstrap_resamples: 2000
+  bootstrap_seed: 519
+
+# Experiment suite (see docs/EXPERIMENT_PROTOCOL.md). `config` is the training config.
+experiments:
+  E1_cnn:
+    description: Custom four-block CNN from scratch (primary).
+    config: configs/cnn.yaml
+    priority: mandatory
+  E2_resnet18:
+    description: ImageNet-pretrained ResNet-18, fully fine-tuned (primary, reference implementation).
+    config: configs/resnet18.yaml
+    priority: mandatory
+  E4_cnn_no_jpeg:
+    description: CNN trained without standardised JPEG re-encoding (shortcut investigation).
+    config: configs/cnn.yaml
+    overrides: ["data.jpeg_quality=null", "experiment_name=cnn_no_jpeg"]
+    priority: next
+  E6_cnn_no_aug:
+    description: CNN trained with augmentation disabled.
+    config: configs/cnn.yaml
+    overrides: ["data.augment.hflip=false", "data.augment.random_crop_padding=0", "experiment_name=cnn_no_aug"]
+    priority: optional
+  E7_cnn_seed123:
+    config: configs/cnn.yaml
+    overrides: ["training.seed=123", "experiment_name=cnn_seed123"]
+    priority: optional
+  E7_cnn_seed2026:
+    config: configs/cnn.yaml
+    overrides: ["training.seed=2026", "experiment_name=cnn_seed2026"]
+    priority: optional
+  E7_resnet18_seed123:
+    config: configs/resnet18.yaml
+    overrides: ["training.seed=123", "experiment_name=resnet18_seed123"]
+    priority: optional
+  E7_resnet18_seed2026:
+    config: configs/resnet18.yaml
+    overrides: ["training.seed=2026", "experiment_name=resnet18_seed2026"]
+    priority: optional
+  E8_resnet18_scratch:
+    description: ResNet-18 randomly initialised (architecture vs pretraining).
+    config: configs/resnet18.yaml
+    overrides: ["model.pretrained=false", "training.learning_rate=0.001", "experiment_name=resnet18_scratch"]
+    priority: optional

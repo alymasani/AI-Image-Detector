@@ -1,0 +1,43 @@
+{
+  "evaluated_rows": 0,
+  "pending_rows": [
+    {
+      "model": "Chance baseline",
+      "test": "test_sd"
+    },
+    {
+      "model": "Chance baseline",
+      "test": "test_mj"
+    },
+    {
+      "model": "Chance baseline",
+      "test": "test_mj_native"
+    },
+    {
+      "model": "Custom CNN",
+      "test": "test_sd"
+    },
+    {
+      "model": "Custom CNN",
+      "test": "test_mj"
+    },
+    {
+      "model": "Custom CNN",
+      "test": "test_mj_native"
+    },
+    {
+      "model": "ResNet-18",
+      "test": "test_sd"
+    },
+    {
+      "model": "ResNet-18",
+      "test": "test_mj"
+    },
+    {
+      "model": "ResNet-18",
+      "test": "test_mj_native"
+    }
+  ],
+  "trained_primary_models": [],
+  "figures": []
+}

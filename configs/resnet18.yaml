@@ -1,0 +1,14 @@
+# Model B: ImageNet-pretrained ResNet-18, fully fine-tuned.
+# NOTE: this is the project's REFERENCE implementation (src/models/resnet18.py). The ResNet-18
+# model is assigned to another group member; replace/augment with their implementation when
+# available (see docs/ARCHITECTURE.md, "Collaborator integration").
+inherits: cnn.yaml
+experiment_name: resnet18
+
+model:
+  name: resnet18
+  pretrained: true             # Torchvision IMAGENET1K_V1 weights; fails loudly if unavailable
+  freeze_backbone: false       # full fine-tuning
+
+training:
+  learning_rate: 0.0001

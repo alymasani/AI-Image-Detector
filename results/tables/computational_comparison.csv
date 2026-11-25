@@ -1,0 +1,3 @@
+model,experiment,status
+Custom CNN,cnn,PENDING
+ResNet-18,resnet18,PENDING
