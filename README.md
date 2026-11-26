@@ -54,12 +54,12 @@ python scripts/reproduce.py smoke    # SYNTHETIC end-to-end run in .dev/ (not Ge
 ```
 
 ## Dataset (GenImage, CC BY-NC-SA 4.0, non-commercial)
-Download only the `stable_diffusion_v_1_4` and `Midjourney` folders from the official links
-(https://github.com/GenImage-Dataset/GenImage) and extract them under one root. Details: `docs/DATASET.md`.
+Only about 53k of the 2.7M images are needed. They're downloaded selectively (~17 GB) from the official split
+archives via HTTP range requests, and each file is CRC-verified. Details: `docs/DATASET.md`.
 ```bash
-python scripts/prepare_data.py instructions
-export GENIMAGE_ROOT=/path/to/genimage                 # or pass --data-root
-python scripts/prepare_data.py check                   # verifies layout; suggests folder paths if they differ
+python -m src.data.genimage_remote --data-root data/genimage --workers 16   # resumable; re-run to retry failures
+export GENIMAGE_ROOT=data/genimage                     # or pass --data-root
+python scripts/prepare_data.py check                   # verifies layout and counts
 python scripts/prepare_data.py manifests --workers 8   # deterministic splits + leakage report
 python scripts/prepare_data.py audit                   # bias statistics + metadata-only shortcut baseline
 python scripts/prepare_data.py cache --cache-dir data/cache   # optional: pre-standardised 224px images
@@ -102,7 +102,7 @@ the files, then add each `url`. **Status: no trained checkpoints yet; hosting PE
 The CNN is small (1.2 M params); ResNet-18 should fit in a few GB of GPU memory at batch 32 with AMP (estimate, not measured). Measured on an
 Apple M4 (MPS), compute-only throughput was 87 img/s (CNN) and 118 img/s (ResNet-18), i.e. roughly 6–8 min of
 compute per 40k-image epoch before data loading. An RTX 3080 or TALC GPU will be faster. Disk: the SD 1.4 training
-archives are large (tens of GB, size not published).
+archives total 324 GB; the selective download needs ~17 GB.
 
 ## Known limitations
 Architecture and initialisation are confounded in the main comparison; GenImage reals are ImageNet photos (overlap with

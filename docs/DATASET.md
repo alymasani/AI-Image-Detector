@@ -8,27 +8,39 @@
   https://pan.baidu.com/s/1i0OFqYN5i6oFAxeK6bIwRQ (code `ztf1`).
 - Licence: **CC BY-NC-SA 4.0, non-commercial research/teaching only**. Dataset images are not committed to this repo.
 
-Facts verified from official sources (2026-11-25):
-- The Drive root contains folders `ADM, BigGAN, glide, Midjourney, stable_diffusion_v_1_4, stable_diffusion_v_1_5, VQDM, wukong`.
-  The README tree names the SD folder `Stable Diffusion V1.4`.
-- Each generator folder has `train/{ai,nature}` and `val/{ai,nature}`. `nature` = real ImageNet photographs.
-- Paper: per class, each generator has 162 training and 6 test images → about **162,000 train / 6,000 val
-  AI images per generator**. SD V1.4 outputs are 512×512; Midjourney (V5) outputs are 1024×1024.
-- **Not published:** archive sizes, archive format/part names, checksums. So the download isn't scripted (and Drive
-  quotas make scripted downloads unreliable), and there's no checksum to validate against.
+Facts verified from the official sources (2026-11-25):
+- The Drive root holds one folder per generator. The two we use are `stable_diffusion_v_1_4` (30 files:
+  `imagenet_ai_0419_sdv4.z01`–`.z29` + `.zip`, 96.4 GB) and `Midjourney` (71 files: `imagenet_midjourney.z01`–`.z70`
+  + `.zip`, 227.5 GB). Part ids are recorded in `configs/genimage_parts.json`.
+- The archives' central directories (read directly) give **162,000 train and 6,000 val images per class** for each
+  generator (Midjourney `train/nature`: 161,701). All members are deflate-compressed. Average compressed size: SD AI
+  ≈ 460 KB (512² PNG), MJ AI ≈ 1.24 MB (1024² PNG), real ≈ 113–135 KB (ImageNet JPEG).
+- Archive-internal folders: `imagenet_ai_0419_sdv4/{train,val}/{ai,nature}` and `imagenet_midjourney/...`.
+- The repository publishes no checksums. Every downloaded file is verified against the CRC-32 stored in the official
+  archive.
 
-## Acquisition (manual)
+## Acquisition (automated, selective)
+The full archives (324 GB) don't fit on a laptop and contain about 6× more images than this project uses.
+`src/data/genimage_remote.py` downloads **only the needed images** straight from the official archives:
 ```bash
-python scripts/prepare_data.py instructions          # prints the steps above
-# download ONLY Midjourney/ and stable_diffusion_v_1_4/ and extract under one root, then:
-export GENIMAGE_ROOT=/path/to/genimage
-python scripts/prepare_data.py check                 # counts images; lists candidate folders if paths differ
+python -m src.data.genimage_remote --data-root data/genimage --workers 16     # ~17 GB, resumable
+python scripts/prepare_data.py check
 ```
-If extraction produces a wrapper directory (e.g. `stable_diffusion_v_1_4/imagenet_ai_xxxx/`), set
-`dataset.generators.sdv14.folder` / `midjourney.folder` in `configs/experiments.yaml` to the relative path that
-`check` reports. **Disk:** the SD 1.4 training partition is ~324k images (162k PNG at 512² plus 162k ImageNet JPEGs).
-Its size isn't published; budget tens of GB. After manifests exist, `prepare_data.py cache` writes the 52k selected
-images as 224 px JPEGs (well under 1 GB), and the raw archives could then be moved off the machine.
+How it works: a split ZIP is one ZIP cut into parts. Its central directory (in the last part) gives each member's
+part, byte offset, sizes and CRC-32. Google Drive serves HTTP range requests, so the tool reads the directory, writes
+each folder's **full official file list** to `_official_listing.txt`, walks every pool in the *same seeded
+permutation* as `create_splits` (pool seeds derived from `splits.seed` and the pool name), and fetches the leading
+candidates plus a 3% + 20 margin for unreadable files. A candidate that shares (CRC, size) with an already-planned
+image doesn't count toward the target, mirroring the split builder's exact-duplicate exclusion. Because
+`create_splits` permutes the full official listing, **the manifests are identical to those built from a complete
+download**. If it ever reaches a candidate that wasn't downloaded, it stops that pool and records it under
+`split_metadata.json → stopped_at_not_downloaded` (it never skips ahead). Fetch more with
+`--extra <pool>=N`. Tested in `tests/essential/test_data.py` (plan order equals split-builder order; partial pool stops).
+
+Manual alternative (full download): fetch every part of both folders, `zip -s 0 imagenet_ai_0419_sdv4.zip --out
+full.zip && unzip full.zip` (likewise for Midjourney) under `<root>/stable_diffusion_v_1_4/` and `<root>/Midjourney/`.
+The configured folders `stable_diffusion_v_1_4/imagenet_ai_0419_sdv4` and `Midjourney/imagenet_midjourney` then
+match.
 
 ## Splits (`configs/experiments.yaml → splits`, seed 42)
 

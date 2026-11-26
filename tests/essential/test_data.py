@@ -127,3 +127,45 @@ def test_cache_is_bit_identical_to_on_the_fly(manifests, synthetic_root, data_cf
     b = make_dataset(df, synthetic_root, cfg, train=False)
     for i in range(len(df)):
         assert torch.equal(a[i][0], b[i][0])
+
+
+def test_selective_download_plan_matches_split_builder_order(synthetic_root):
+    """The downloader must fetch exactly the leading candidates the split builder consumes."""
+    from src.data.create_splits import Selector, pool_plan
+    from src.data.genimage_remote import Member, plan_downloads
+
+    cfg = suite_config()
+    prefixes = {"sdv14": cfg["dataset"]["generators"]["sdv14"]["folder"],
+                "midjourney": cfg["dataset"]["generators"]["midjourney"]["folder"]}
+    indexes = {}
+    for gen, prefix in prefixes.items():
+        for spec in pool_plan(cfg):
+            if spec["generator"] != gen:
+                continue
+            folder = synthetic_root / prefix / spec["subdir"]
+            names = sorted(p.name for p in folder.iterdir() if p.suffix.lower() in (".png", ".jpeg", ".jpg"))
+            indexes.setdefault(gen, {})[f"{prefix}/{spec['subdir']}"] = [
+                Member(f"{prefix}/{spec['subdir']}/{n}", 8, i, 1000 + i, 1000 + i, 0, 0) for i, n in enumerate(names)]
+    plan = plan_downloads(cfg, indexes, prefixes, margin=0.0, extra={})
+    sel = Selector(synthetic_root, int(cfg["splits"]["seed"]))
+    for spec in pool_plan(cfg):
+        folder_rel = f"{prefixes[spec['generator']]}/{spec['subdir']}"
+        order = sel.permutation(spec["pool"], folder_rel, cfg["dataset"]["image_extensions"])
+        planned = [m.name for m in plan[spec["pool"]]]
+        assert planned == order[: len(planned)]
+
+
+def test_partial_pool_stops_at_missing_candidate(tmp_path):
+    """With an official listing, a not-yet-downloaded candidate stops the pool (never skipped)."""
+    from src.data.create_splits import OFFICIAL_LISTING, Selector
+
+    folder = tmp_path / "gen" / "val" / "ai"
+    folder.mkdir(parents=True)
+    names = [f"{i:03d}.png" for i in range(10)]
+    (folder / OFFICIAL_LISTING).write_text("\n".join(names))
+    sel = Selector(tmp_path, seed=1)
+    order = sel.permutation("p", "gen/val/ai", [".png"])
+    for rel in order[:3]:
+        Image.new("RGB", (8, 8), (int(rel[-7:-4]), 0, 0)).save(tmp_path / rel)
+    rows, _ = sel.take(order, 0, 5, {"label": 1}, "x")
+    assert len(rows) == 3 and sel.not_downloaded == [order[3]] and sel.pool_sizes["p"] == 10

@@ -8,11 +8,13 @@ dataset:
   # Relative paths (under root) of the folders that contain train/ and val/ after extraction.
   # The README tree uses "Stable Diffusion V1.4"; the Google Drive folder is "stable_diffusion_v_1_4"
   # and archives may add a wrapper dir. `python scripts/prepare_data.py check` lists candidates.
+  # Values below match the official archives as extracted by src/data/genimage_remote.py
+  # (Drive folder / folder inside the split zip).
   generators:
     sdv14:
-      folder: "Stable Diffusion V1.4"
+      folder: "stable_diffusion_v_1_4/imagenet_ai_0419_sdv4"
     midjourney:
-      folder: "Midjourney"
+      folder: "Midjourney/imagenet_midjourney"
   ai_subdir: ai
   real_subdir: nature
   image_extensions: [".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff"]
