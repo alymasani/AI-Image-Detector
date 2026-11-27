@@ -1,0 +1,6 @@
+# Manifests and exported results are hashed (checkpoints store manifest SHA-256), so their bytes must be
+# identical on every OS: never convert line endings on checkout.
+manifests/** text eol=lf
+results/**/*.csv text eol=lf
+results/**/*.json text eol=lf
+results/**/*.md text eol=lf
