@@ -1,0 +1,16 @@
+{
+  "experiment": "cnn_no_jpeg",
+  "device": "cuda",
+  "results": [
+    {
+      "batch_size": 1,
+      "ms_per_batch": 0.889,
+      "ms_per_image": 0.889
+    },
+    {
+      "batch_size": 32,
+      "ms_per_batch": 14.683,
+      "ms_per_image": 0.459
+    }
+  ]
+}

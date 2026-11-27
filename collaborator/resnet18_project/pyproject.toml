@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spotting-the-unseen-generator"
+version = "0.1.0"
+description = "ENSF 519 Group 38: how well do AI-generated image detectors generalize to unseen generators?"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    # torch 2.7+ is the first release with CUDA 12.8 wheels, which the RTX 50xx (Blackwell) GPUs need.
+    "torch>=2.7",
+    "torchvision>=0.22",
+    "numpy>=1.26",
+    "pandas>=2.2",
+    "scikit-learn>=1.5",
+    "matplotlib>=3.8",
+    "pillow>=10.0",
+    "tqdm>=4.66",
+    "huggingface-hub>=2.4.0",
+    "pyarrow>=25.0.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.6",
+    "ipykernel>=6.29",
+    "jupyterlab>=4.2",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu128", marker = "sys_platform == 'win32' or sys_platform == 'linux'" }]
+torchvision = [{ index = "pytorch-cu128", marker = "sys_platform == 'win32' or sys_platform == 'linux'" }]
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-include = ["*.ipynb"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

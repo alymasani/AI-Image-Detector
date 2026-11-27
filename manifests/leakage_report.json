@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "problems": [],
+  "counts": {
+    "train": {
+      "real": 20000,
+      "ai": 20000
+    },
+    "val": {
+      "real": 2000,
+      "ai": 2000
+    },
+    "test_sd": {
+      "real": 2000,
+      "ai": 2000
+    },
+    "test_mj": {
+      "real": 2000,
+      "ai": 2000
+    },
+    "test_mj_native": {
+      "real": 2000,
+      "ai": 2000
+    }
+  },
+  "midjourney_in_train": 0,
+  "midjourney_in_val": 0,
+  "shared_real_identical": true
+}

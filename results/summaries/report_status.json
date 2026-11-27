@@ -1,43 +1,18 @@
 {
-  "evaluated_rows": 0,
-  "pending_rows": [
-    {
-      "model": "Chance baseline",
-      "test": "test_sd"
-    },
-    {
-      "model": "Chance baseline",
-      "test": "test_mj"
-    },
-    {
-      "model": "Chance baseline",
-      "test": "test_mj_native"
-    },
-    {
-      "model": "Custom CNN",
-      "test": "test_sd"
-    },
-    {
-      "model": "Custom CNN",
-      "test": "test_mj"
-    },
-    {
-      "model": "Custom CNN",
-      "test": "test_mj_native"
-    },
-    {
-      "model": "ResNet-18",
-      "test": "test_sd"
-    },
-    {
-      "model": "ResNet-18",
-      "test": "test_mj"
-    },
-    {
-      "model": "ResNet-18",
-      "test": "test_mj_native"
-    }
+  "evaluated_rows": 6,
+  "pending_rows": [],
+  "trained_primary_models": [
+    "Custom CNN",
+    "ResNet-18"
   ],
-  "trained_primary_models": [],
-  "figures": []
+  "figures": [
+    "confusion_matrices.png",
+    "dataset_audit.png",
+    "generalization_drop.png",
+    "jpeg_robustness.png",
+    "main_comparison.png",
+    "model_comparison.png",
+    "roc_curves.png",
+    "training_curves.png"
+  ]
 }

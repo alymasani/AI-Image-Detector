@@ -1,1 +1,16 @@
-{}
+{
+  "cnn": {
+    "url": null,
+    "path": "checkpoints/cnn/best.pt",
+    "sha256": "cfe71097bbe0a9406903fa84fcbc43b2fc6fcdda4e67879edfe627cfcc38434d",
+    "experiment": "cnn",
+    "represents": "E1 primary"
+  },
+  "resnet18": {
+    "url": null,
+    "path": "checkpoints/resnet18/best.pt",
+    "sha256": "31bb3092243e7209256391b7dbc359cc859f788332d8bac6a541e94f247cfbe3",
+    "experiment": "resnet18",
+    "represents": "E2 primary"
+  }
+}

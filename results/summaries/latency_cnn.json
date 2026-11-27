@@ -1,0 +1,16 @@
+{
+  "experiment": "cnn",
+  "device": "cuda",
+  "results": [
+    {
+      "batch_size": 1,
+      "ms_per_batch": 0.893,
+      "ms_per_image": 0.893
+    },
+    {
+      "batch_size": 32,
+      "ms_per_batch": 14.655,
+      "ms_per_image": 0.458
+    }
+  ]
+}

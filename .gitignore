@@ -226,7 +226,7 @@ __marimo__/
 # Development-only tests, fixtures, debugging and temporary outputs
 .dev/
 # Datasets (GenImage is obtained from the official source; see docs/DATASET.md)
-data/
+/data/
 *.zip
 *.z[0-9][0-9]
 *.tar

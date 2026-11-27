@@ -11,7 +11,7 @@
 | `src/data/dataset.py` | `ManifestImageDataset` (on-demand loading) and seeded `DataLoader` construction |
 | `src/data/synthetic.py` | Synthetic GenImage-shaped fixtures for software tests only |
 | `src/models/cnn.py` | **Model A: custom four-block CNN (original Group 38 work)** |
-| `src/models/resnet18.py` | **Model B: reference ResNet-18 integration** (see "Collaborator integration") |
+| `src/models/resnet18.py` | **Model B: collaborator's ResNet-18** (integrated from `collaborator/resnet18_project/`) |
 | `src/models/factory.py` | Builds a model from config; parameter counts; initialisation description |
 | `src/training/` | Explicit training loop, early stopping, checkpoint save/resume |
 | `src/evaluation/` | Metrics, bootstrap/McNemar statistics, JPEG robustness, figures |
@@ -62,25 +62,31 @@ Design rationale:
 - **Limitation.** Resizing to 224 px and four pooling stages discard high-frequency information where some generator
   artefacts (e.g. upsampling periodicities) live. This trades forensic sensitivity for the proposal's fixed input size.
 
-## Model B: ResNet-18 (ImageNet pretrained, fully fine-tuned)
+## Model B: ResNet-18 (ImageNet pretrained, fully fine-tuned): collaborator's model
 
-`torchvision.models.resnet18(weights=ResNet18_Weights.IMAGENET1K_V1)`, `fc` replaced by `Linear(512, 2)`
-(Xavier init), all 11,177,538 parameters trainable (`freeze_backbone: false`). If pretrained weights can't be
-loaded, construction **fails** rather than silently using random weights. `model.pretrained=false` is the explicit
-switch for the optional from-scratch control (E8).
+**Provenance.** The ResNet-18 model is the work of another Group 38 member. Their complete project is preserved unmodified
+in `collaborator/resnet18_project/` (own README, data scripts, training loop, tests, notebook and the results of their three
+training runs). `src/models/resnet18.py` integrates their model construction (`src/detector/models.py::build_resnet18`):
+`torchvision.models.resnet18(weights=ResNet18_Weights.IMAGENET1K_V1)`, `fc` replaced by `Linear(512, 2)` with PyTorch's
+default initialisation, all 11,177,538 parameters trainable. Integration review (Phase 4 checklist):
 
-### Collaborator integration
+| Question | Collaborator's implementation | Compatible? |
+|---|---|---|
+| ImageNet weights | yes, `IMAGENET1K_V1` | yes |
+| All layers fine-tuned | yes (`requires_grad` everywhere) | yes |
+| Label mapping | 0 = real, 1 = fake | yes, identical |
+| Output | `N×2` logits, `softmax[:,1]` = P(fake) | yes |
+| Preprocessing | short side → 224 **bicubic**, centre crop, JPEG q95 4:2:0, hflip only, ImageNet norm | close but not identical, so E2 uses the shared pipeline (bilinear + pad-crop) |
+| Optimiser / selection | AdamW, cosine LR, fixed 8 epochs, best **val AUROC** | differs from the proposal (Adam + early stopping on val loss) |
+| Data | first 20k/2.5k rows per class of the class-sorted mirror; tests = all 6k/class with MJ-native reals | differs from the shared manifests |
 
-The ResNet-18 model is assigned to another group member. When this repository was set up (2026-11-25) there was no
-collaborator code or checkpoint on any branch (`git fetch --all`: only `main` with the initial commit). So
-`src/models/resnet18.py` is a **reference implementation** written to keep the pipeline executable. To integrate the
-collaborator's work:
-1. Add their module under `src/models/` (keep it unmodified where possible) and register it in `factory.py`.
-2. Confirm: ImageNet weights? all layers trainable? label mapping (must be 0 = real, 1 = AI, or remap)? preprocessing
-   (must match `src/data/preprocessing.py`)?
-3. Train with the same manifests, or evaluate their checkpoint with `python -m src.evaluate` after converting it to
-   this repo's checkpoint format (`model_state` + `model_config`).
-4. Update `docs/ATTRIBUTION.md` and the contribution log.
+Integration decision: the proposal requires both models to use **the same manifests, preprocessing, optimiser (Adam) and
+early stopping**. E2 therefore trains the collaborator's model definition with the shared pipeline (`configs/resnet18.yaml`).
+Their own runs (their split and recipe, seeds 0–2) are reported separately as supplementary evidence
+(`results/tables/collaborator_resnet18_runs.csv`). They are never mixed into the main table. Their checkpoints (`best.pt`)
+were not included in the hand-over, so their runs can't be re-evaluated on the shared manifests. Additions in the
+integrated module: a hard failure if the pretrained weights can't be loaded (no silent random fallback), and an explicit
+`pretrained=false` switch for E8.
 
 ## Scientific limitations of the comparison
 - The two models differ in **both** architecture (8-conv plain CNN vs 18-layer residual network, 1.19 M vs 11.18 M

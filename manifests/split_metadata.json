@@ -1,0 +1,136 @@
+{
+  "seed": 42,
+  "selection": "seeded sha256(seed:pool:filename) order; skip unreadable + exact duplicates; stop at listed-but-missing candidates",
+  "splits_config": {
+    "seed": 42,
+    "train_per_class": 20000,
+    "val_per_class": 2000,
+    "test_familiar_per_class": 2000,
+    "test_unseen_ai": 2000,
+    "test_unseen_native_real": 2000,
+    "near_duplicate_hamming": 4
+  },
+  "generator_folders": {
+    "sdv14": "stable_diffusion_v_1_4/imagenet_ai_0419_sdv4",
+    "midjourney": "Midjourney/imagenet_midjourney"
+  },
+  "source_provenance": {
+    "source": "https://huggingface.co/datasets/nebula/GenImage-arrow",
+    "revision": "3f4b9f921a673be09a93b335ed728cea0c6ecf33",
+    "retrieved": "2026-11-26",
+    "seed": 42,
+    "margin": 0.03,
+    "leaves": {
+      "data/train/stable_diffusion_v_1_4": {
+        "generator": "sdv14",
+        "partition": "train",
+        "folder": "stable_diffusion_v_1_4/imagenet_ai_0419_sdv4",
+        "counts": {
+          "fake": 161997,
+          "real": 162000
+        },
+        "kept": 41371,
+        "fractions": {
+          "fake": 0.12747149638573502,
+          "real": 0.12746913580246902
+        }
+      },
+      "data/test/stable_diffusion_v_1_4": {
+        "generator": "sdv14",
+        "partition": "val",
+        "folder": "stable_diffusion_v_1_4/imagenet_ai_0419_sdv4",
+        "counts": {
+          "fake": 6000,
+          "real": 6000
+        },
+        "kept": 12000,
+        "fractions": {
+          "fake": 1.0,
+          "real": 1.0
+        }
+      },
+      "data/test/Midjourney": {
+        "generator": "midjourney",
+        "partition": "val",
+        "folder": "Midjourney/imagenet_midjourney",
+        "counts": {
+          "fake": 6000,
+          "real": 6000
+        },
+        "kept": 12000,
+        "fractions": {
+          "fake": 1.0,
+          "real": 1.0
+        }
+      }
+    }
+  },
+  "pool_sizes": {
+    "sdv14/train/ai": 161997,
+    "sdv14/train/nature": 162000,
+    "sdv14/val/ai": 6000,
+    "sdv14/val/nature": 6000,
+    "midjourney/val/ai": 6000,
+    "midjourney/train/ai": 0,
+    "midjourney/val/nature": 6000
+  },
+  "pools_with_full_listing": {
+    "sdv14/train/ai": true,
+    "sdv14/train/nature": true,
+    "sdv14/val/ai": true,
+    "sdv14/val/nature": true,
+    "midjourney/val/ai": true,
+    "midjourney/train/ai": false,
+    "midjourney/val/nature": true
+  },
+  "counts": {
+    "train": {
+      "real": 20000,
+      "ai": 20000
+    },
+    "val": {
+      "real": 2000,
+      "ai": 2000
+    },
+    "test_sd": {
+      "real": 2000,
+      "ai": 2000
+    },
+    "test_mj": {
+      "real": 2000,
+      "ai": 2000
+    },
+    "test_mj_native": {
+      "real": 2000,
+      "ai": 2000
+    }
+  },
+  "manifest_sha256": {
+    "train.csv": "c22e22ed46d9a9b997451cecb675759a907c8a6360466fc6923e5ef70d2c6602",
+    "val.csv": "593fbca3a071c6a40d117bef8a2894c7c4fd1499d76fd7d46727dd6d36e95e29",
+    "test_sd.csv": "f2ed121ed595a5e7124077a212c703d676167a11b701eaa9cc32b260e81cecc8",
+    "test_mj.csv": "39f3e0bc7bf617e713db4e53066587d858602f7d7154181ad19e9a468694e778",
+    "test_mj_native.csv": "b94b287328bcd115c6e614ca727213224759131bce866e517f1b837f7c525dc8"
+  },
+  "exclusions": [
+    {
+      "relative_path": "stable_diffusion_v_1_4/imagenet_ai_0419_sdv4/train/nature/n03782006_4527.JPEG",
+      "reason": "exact_duplicate",
+      "detail": "stable_diffusion_v_1_4/imagenet_ai_0419_sdv4/train/nature/n04152593_25203.JPEG"
+    },
+    {
+      "relative_path": "stable_diffusion_v_1_4/imagenet_ai_0419_sdv4/val/nature/ILSVRC2012_val_00040229.JPEG",
+      "reason": "exact_duplicate",
+      "detail": "stable_diffusion_v_1_4/imagenet_ai_0419_sdv4/train/nature/n03782006_5882.JPEG"
+    },
+    {
+      "relative_path": "Midjourney/imagenet_midjourney/val/nature/ILSVRC2012_val_00013617.JPEG",
+      "reason": "exact_duplicate",
+      "detail": "stable_diffusion_v_1_4/imagenet_ai_0419_sdv4/val/nature/ILSVRC2012_val_00032657.JPEG"
+    }
+  ],
+  "shortfalls": [],
+  "stopped_at_not_downloaded": [],
+  "near_duplicate_pairs": 8,
+  "near_duplicate_pairs_across_leakage_pairs": 6
+}

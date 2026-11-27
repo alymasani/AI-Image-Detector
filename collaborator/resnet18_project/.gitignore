@@ -1,0 +1,16 @@
+# Data and training outputs (large, regenerated locally)
+data/
+/runs/
+# Model weights are ~45 MB each. A run's history.csv and config.json next to them are kept.
+*.pt
+*.pth
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+*.egg-info/
+# Jupyter
+.ipynb_checkpoints/

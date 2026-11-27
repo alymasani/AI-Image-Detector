@@ -98,7 +98,9 @@ def evaluate_checkpoint(
         tag = evaluation_tag(experiment, test, extra_jpeg)
         pred_path = res / "predictions" / f"{tag}.csv"
         pred_path.parent.mkdir(parents=True, exist_ok=True)
-        preds.to_csv(pred_path, index=False, float_format="%.6f")
+        # 9 significant digits round-trip float32 exactly; fixed "%.6f" collapsed every probability < 5e-7
+        # to 0, creating ties that shifted AUROC recomputed from the CSV (bootstrap) vs in memory.
+        preds.to_csv(pred_path, index=False, float_format="%.9g")
         metrics = compute_metrics(preds["true_label"], preds["probability_ai"], threshold, loss=out["loss"])
         summary = {
             "experiment": experiment, "model": display_name(ckpt["model_config"]), "test": test,

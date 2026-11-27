@@ -17,7 +17,7 @@ data:
   augment:
     hflip: true
     random_crop_padding: 8     # reflect-pad by 8 px then random 224 crop (small translation, no resampling)
-  cache_dir: null              # optional standardised-image cache, see scripts/prepare_data.py cache
+  cache_dir: data/cache        # standardised-image cache (prepare_data.py cache); missing files are computed on the fly, bit-identically
   num_workers: 4
   train_limit: null            # per-class cap for pilot runs (null = full manifest)
   val_limit: null

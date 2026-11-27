@@ -1,0 +1,55 @@
+{
+  "experiment": "cnn_no_aug",
+  "model": "Custom CNN",
+  "test": "test_mj_native",
+  "extra_jpeg_quality": null,
+  "checkpoint": "checkpoints/cnn_no_aug/best.pt",
+  "checkpoint_identifier": "cnn_no_aug/best.pt@epoch15#7455f6e76e34",
+  "best_epoch": 15,
+  "manifest": "manifests/test_mj_native.csv",
+  "manifest_sha256": "b94b287328bcd115c6e614ca727213224759131bce866e517f1b837f7c525dc8",
+  "training_manifest_sha256": {
+    "train.csv": "c22e22ed46d9a9b997451cecb675759a907c8a6360466fc6923e5ef70d2c6602",
+    "val.csv": "593fbca3a071c6a40d117bef8a2894c7c4fd1499d76fd7d46727dd6d36e95e29"
+  },
+  "preprocessing": {
+    "image_size": 224,
+    "interpolation": "bilinear",
+    "jpeg_quality": 95,
+    "normalize": "imagenet"
+  },
+  "device": "cuda",
+  "eval_seconds": 11.69,
+  "metrics": {
+    "n": 4000,
+    "n_real": 2000,
+    "n_ai": 2000,
+    "threshold": 0.5,
+    "accuracy": 0.53025,
+    "precision": 0.6805970149253732,
+    "recall": 0.114,
+    "f1": 0.19528907922912206,
+    "auroc": 0.574548625,
+    "fpr": 0.0535,
+    "fnr": 0.886,
+    "tnr": 0.9465,
+    "balanced_accuracy": 0.53025,
+    "loss": 2.5891592502593994,
+    "confusion_matrix": [
+      [
+        1893,
+        107
+      ],
+      [
+        1772,
+        228
+      ]
+    ],
+    "tn": 1893,
+    "fp": 107,
+    "fn": 1772,
+    "tp": 228,
+    "undefined": []
+  },
+  "predictions_file": "results/predictions/cnn_no_aug__test_mj_native.csv"
+}

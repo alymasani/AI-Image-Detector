@@ -1,10 +1,10 @@
-model,experiment,test,status
-Chance baseline,E0,test_sd,PENDING
-Chance baseline,E0,test_mj,PENDING
-Chance baseline,E0,test_mj_native,PENDING
-Custom CNN,cnn,test_sd,PENDING: no evaluation of cnn on test_sd
-Custom CNN,cnn,test_mj,PENDING: no evaluation of cnn on test_mj
-Custom CNN,cnn,test_mj_native,PENDING: no evaluation of cnn on test_mj_native
-ResNet-18,resnet18,test_sd,PENDING: no evaluation of resnet18 on test_sd
-ResNet-18,resnet18,test_mj,PENDING: no evaluation of resnet18 on test_mj
-ResNet-18,resnet18,test_mj_native,PENDING: no evaluation of resnet18 on test_mj_native
+model,experiment,test,status,accuracy,precision,recall,f1,auroc,fpr,checkpoint,fnr,balanced_accuracy,n,accuracy_ci_low,accuracy_ci_high,f1_ci_low,f1_ci_high,auroc_ci_low,auroc_ci_high
+Chance baseline,E0,test_sd,analytic,0.5,0.5,0.5,0.5,0.5,0.5,,,,,,,,,,
+Chance baseline,E0,test_mj,analytic,0.5,0.5,0.5,0.5,0.5,0.5,,,,,,,,,,
+Chance baseline,E0,test_mj_native,analytic,0.5,0.5,0.5,0.5,0.5,0.5,,,,,,,,,,
+Custom CNN,cnn,test_sd,evaluated,0.897,0.897,0.897,0.897,0.96127525,0.103,cnn/best.pt@epoch8#cfe71097bbe0,0.103,0.897,4000.0,0.88775,0.90600625,0.8877219304826206,0.9060698281720556,0.95600098125,0.966248425
+Custom CNN,cnn,test_mj,evaluated,0.514,0.5598290598290598,0.131,0.21231766612641814,0.46456850000000005,0.103,cnn/best.pt@epoch8#cfe71097bbe0,0.869,0.514,4000.0,0.50425,0.52425,0.19165608663749928,0.23425750681790672,0.4474592625,0.48331505937499997
+Custom CNN,cnn,test_mj_native,evaluated,0.51125,0.5469728601252609,0.131,0.21137555465913674,0.4689795,0.1085,cnn/best.pt@epoch8#cfe71097bbe0,0.869,0.51125,4000.0,0.5015,0.52225,0.1907441956744058,0.23304129765981,0.45165087187499997,0.48722637187499995
+ResNet-18,resnet18,test_sd,evaluated,0.96325,0.9598014888337469,0.967,0.963387297633873,0.994011375,0.0405,resnet18/best.pt@epoch7#31bb3092243e,0.033,0.9632499999999999,4000.0,0.95775,0.96875,0.9579199439692286,0.9689135920335712,0.9925566250000001,0.9954757218749999
+ResNet-18,resnet18,test_mj,evaluated,0.60825,0.8638655462184874,0.257,0.3961464354527938,0.727213375,0.0405,resnet18/best.pt@epoch7#31bb3092243e,0.743,0.60825,4000.0,0.598,0.6185,0.37208983628052666,0.4206530707919087,0.7117399906249999,0.742935046875
+ResNet-18,resnet18,test_mj_native,evaluated,0.6035,0.8371335504885994,0.257,0.3932670237184392,0.7215495000000001,0.05,resnet18/best.pt@epoch7#31bb3092243e,0.743,0.6034999999999999,4000.0,0.593,0.61400625,0.3692101303418771,0.4169868763141252,0.7057838,0.736647575

@@ -1,77 +1,100 @@
-# context.md: project state for future sessions (updated 2026-11-25)
+# context.md: project state for future sessions (updated 2026-11-26)
 
 ## Objective
-ENSF 519 Group 38 (Charbel Maroun, Himla Rahman, Aly Masani). Due **2026-12-04 23:59**. Compare a custom four-block
-CNN (from scratch; Aly's primary responsibility) with an ImageNet-pretrained fully fine-tuned ResNet-18 (assigned to
-another member) at detecting AI-generated images. Train on GenImage SD 1.4 vs real; test on held-out SD 1.4 (familiar)
-and Midjourney (unseen). Full spec: `ENSF 519.docx` in repo root (untracked). Proposal PDF is outside the repo.
+ENSF 519 Group 38 (Charbel Maroun, Himla Rahman, Aly Masani). Due **2026-12-04 23:59**.
+
+The project compares a custom four-block CNN (from scratch; Aly's primary responsibility) with an ImageNet-pretrained,
+fully fine-tuned ResNet-18 (the collaborator's model) at detecting AI-generated images. Both are trained on GenImage
+SD 1.4 vs real photos and tested on held-out SD 1.4 (familiar) and Midjourney (unseen). Full spec: `ENSF 519.docx` in
+the repo root (untracked).
 
 ## Non-negotiables
-GenImage only; 20k real + 20k SD1.4 train; 224×224 RGB; labels 0 real / 1 AI; disjoint splits; Midjourney test-only;
-consistent JPEG re-encoding; CNN: conv/ReLU/pool, CE, Adam, early stopping, no pretrained weights; ResNet-18:
-ImageNet weights, new 2-way head, full fine-tune; metrics acc/F1/AUROC + degradation + 50% baseline. Never fabricate
-results; don't tune on test sets; don't push without permission.
+- Data and preprocessing:
+  - GenImage only; 20k real + 20k SD 1.4 for training.
+  - 224×224 RGB; labels 0 real / 1 AI.
+  - Disjoint splits; Midjourney used only for testing; consistent JPEG re-encoding.
+- Models:
+  - CNN: from scratch.
+  - ResNet-18: ImageNet weights, new 2-way head, full fine-tune.
+- Metrics: accuracy / F1 / AUROC, degradation, 50% baseline.
+- Integrity: never fabricate results; never tune on test sets (the primary configs are FROZEN now); don't push or
+  commit without permission.
 
-## Environment (this machine)
-Apple M4, 16 GB RAM, macOS, **no CUDA**, MPS available, ~29.6 GB free disk. Local venv `.venv/` (Python 3.9.6, torch
-2.8.0, torchvision 0.23.0; exact freeze in `.dev/pip-freeze-verified.txt`). ResNet-18 ImageNet weights are cached in
-`~/.cache/torch/hub`.
+## Environments
+**Windows PC (all real results).**
+- Hardware: RTX 3080 10 GB, 20 CPUs.
+- Software: `uv` venv `.venv` (Python 3.12.16, torch 2.14.1+cu126).
+- Run Python as `.venv/Scripts/python.exe`.
+- Smart App Control occasionally blocks a SciPy/scikit-learn DLL the first time it loads. Re-running the command works.
 
-## Architecture (see docs/ARCHITECTURE.md)
-`src/data` (download/check, create_splits + leakage, preprocessing, dataset, audit, synthetic) · `src/models`
-(cnn.py 1,189,794 params; resnet18.py reference 11,177,538) · `src/training` (trainer, early stopping on val loss,
-checkpointing with resume + manifest hashes) · `src/evaluation` (metrics, bootstrap/McNemar, robustness, figures) ·
-`src/train.py`, `src/evaluate.py`, `src/experiment.py` (run suite + report assets) · `scripts/` wrappers incl.
-`reproduce.py` (status/tests/smoke/manifests/train/evaluate/report/checkpoints) and `hpc/train.slurm` (placeholders).
-Configs: `configs/cnn.yaml`, `resnet18.yaml` (inherits cnn), `smoke.yaml`, `experiments.yaml` (dataset folders,
-split counts, manifest names, evaluation settings, experiment ids E1/E2/E4/E6/E7/E8).
+**Mac M4.** Used for development only (MPS, no CUDA).
 
-Preprocessing: RGB (alpha → white) → resize short side 224 bilinear → centre crop → JPEG q95 → [train: hflip, reflect
-pad 8 + random crop] → ImageNet normalisation. Optional cache `prepare_data.py cache` (bit-identical).
-Splits: train from SD1.4 train; val + test_sd from consecutive blocks of one permutation of SD1.4 val; test_mj = test_sd
-reals + 2k MJ val AI (shared-real protocol); test_mj_native secondary. Exact-dup exclusion by SHA-256; pHash
-near-dups reported in `manifests/near_duplicates.csv`.
+## Data (done)
+Source: HF mirror `nebula/GenImage-arrow`, revision `3f4b9f92…`, downloaded by `src/data/genimage_hf.py` into
+`data/genimage` (23 GB, git-ignored), using seeded hash sampling.
 
-## Dataset status: **BLOCKER**
-Not downloaded. Official Drive folders: `stable_diffusion_v_1_4`, `Midjourney` (README tree says `Stable Diffusion
-V1.4`); each has train/val × ai/nature; ~162k train / ~6k val AI per generator (paper); SD 512², MJ 1024².
-Archive sizes/format/checksums are not published. SD1.4 train is probably larger than the free disk here (estimate). `prepare_data.py check`
-discovers the actual extracted folder and the `dataset.generators.*.folder` values must be set to match.
-No manifests exist yet (`manifests/` is empty).
+`manifests/` (built, leakage PASSED, untracked until the user approves a commit):
 
-## Verified so far (docs/VALIDATION_REPORT.md)
-- `pytest tests/essential`: 31 passed, 1 skipped (CUDA).
-- `reproduce.py smoke` (synthetic): full pipeline incl. both models on MPS, evaluation, robustness, report: OK.
-- Tiny-overfit (random labels, 32 imgs): train acc 1.0 by step 40. Pretrained weights verified.
-- MPS throughput estimate: CNN 87 img/s, ResNet 118 img/s (compute only).
-Not verified: anything on real data, CUDA AMP, Windows multi-worker loading, SLURM script.
+| Manifest | Size |
+|---|---|
+| train | 20k + 20k |
+| val | 2k + 2k |
+| test_sd | 2k + 2k |
+| test_mj | test_sd reals + 2k MJ AI |
+| test_mj_native | 2k + 2k |
 
-## Results
-None. `results/tables/main_results.md` shows PENDING everywhere. No checkpoints (`checkpoints_manifest.json` = {}).
-`results/tables/cnn_architecture.csv` and `parameter_counts.csv` are real (computed).
+- 3 exact-duplicate exclusions. 8 pHash pairs, inspected visually: not copies.
+- Caches: `data/cache/s224_bilinear_q95` and `.../s224_bilinear_nojpeg` (52k files each).
+- Audit: the raw metadata baseline has AUROC 1.0 (real = JPEG, AI = PNG). The standardised file-size baseline gives
+  0.55 on test_sd and 0.29 on test_mj.
 
-## Collaborator integration
-No collaborator code on any branch as of 2026-11-25. `src/models/resnet18.py` is a clearly labelled reference.
-Integration steps are in docs/ARCHITECTURE.md.
+## Results (done; `results/`, `docs/REPORT_GUIDE.md` evidence summary)
+Primary seed 42:
 
-## Known issues / limitations
-Architecture and init confounded; ImageNet overlap with ResNet pretraining; JPEG history not removed; downscaling
-factors differ per source (SD 512→224, MJ 1024→224, ImageNet ~500→224); bootstrap ≠ seed variance; ImageNet class
-stratification not possible for val reals/AI files.
+| Model | SD acc / AUROC | Midjourney acc / AUROC |
+|---|---|---|
+| CNN | 0.897 / 0.961 | 0.514 / 0.465 |
+| ResNet-18 | 0.963 / 0.994 | 0.608 / 0.727 |
 
-## Next commands (in order)
+Seeds (mean ± std over 3):
+- CNN: SD 0.930 ± 0.029, Midjourney AUROC 0.565 ± 0.089.
+- ResNet-18: SD 0.963 ± 0.001, Midjourney AUROC 0.721 ± 0.010.
+
+Supporting experiments:
+- E4 (CNN, no JPEG): SD 0.970, Midjourney 0.647 / AUROC 0.789. Probably a format shortcut (not tested).
+- E6 (CNN, no augmentation): SD 0.951, Midjourney 0.534.
+- E8 (ResNet-18 from scratch): SD 0.888, Midjourney 0.508 / AUROC 0.463. The advantage comes from pretraining.
+
+E3 JPEG robustness: FPR stays roughly flat and FNR rises.
+
+Checkpoints:
+- Local in `checkpoints/<experiment>/best.pt`.
+- SHA-256 hashes in `checkpoints_manifest.json` (cnn `cfe71097…`, resnet18 `31bb3092…`).
+- No hosting URL yet.
+
+## Code changes on 2026-11-26 (see docs/VALIDATION_REPORT.md §B)
+- `src/data/`: new package with `genimage_hf.py` (downloader), `create_splits.py` (listing-aware selector), plus
+  audit, preprocessing and dataset modules. `.gitignore` uses `/data/`.
+- `src/models/resnet18.py`: now the collaborator's construction. `collaborator/resnet18_project/` holds their project,
+  unmodified. `src/experiment.collaborator_table()` summarises their 3 seeds.
+- Bug fixes:
+  - a quadratic selector loop (249 min → 2 min, byte-identical output);
+  - the audit plot's duplicate `split` column;
+  - prediction CSV precision (`%.6f` → `%.9g`), after which all checkpoints were re-evaluated.
+- Essential tests: 35 passed (CUDA included).
+
+## Remaining (needs the group)
+1. Commit (user approval needed): code, docs, `manifests/`, `results/` tables and figures, and `collaborator/`.
+   Never commit `data/`, `checkpoints/`, `runs/`, `.dev/`, `.venv/` or `ENSF 519.docx`.
+2. Upload the checkpoints and set their URLs in `checkpoints_manifest.json`.
+3. Inspect the failure-case images (`results/tables/failure_cases_*.csv`).
+4. Write the report, the reflections, and A7 once TA feedback exists.
+5. Confirm the collaborator's name in REPORT_GUIDE.md and ATTRIBUTION.md.
+
+## Re-running anything
 ```bash
-source .venv/bin/activate
-export GENIMAGE_ROOT=/path/to/extracted/genimage
-python scripts/prepare_data.py check            # then set dataset.generators.*.folder if needed
-python scripts/prepare_data.py manifests --workers 8
-python scripts/prepare_data.py audit
-python scripts/prepare_data.py cache --cache-dir data/cache        # optional speed-up
-python -m src.train --config configs/cnn.yaml --set data.train_limit=16 data.val_limit=16 data.augment.hflip=false data.augment.random_crop_padding=0 model.dropout=0 training.max_epochs=30 training.early_stopping_patience=30 experiment_name=cnn_tiny
-python scripts/run_experiments.py E1_cnn E2_resnet18 --stage pilot
-python scripts/run_experiments.py E1_cnn E2_resnet18 --stage intermediate
-python scripts/run_experiments.py E1_cnn E2_resnet18
-python scripts/generate_report_assets.py
-python scripts/reproduce.py checkpoints register
+.venv/Scripts/python.exe scripts/reproduce.py status
+.venv/Scripts/python.exe -m pytest tests/essential -q
+.venv/Scripts/python.exe scripts/run_experiments.py E1_cnn E2_resnet18   # skips training if runs/<exp>/summary.json exists; re-evaluates
+.venv/Scripts/python.exe scripts/reproduce.py report
 ```
-Then update docs/VALIDATION_REPORT.md, RUBRIC_CHECKLIST.md, REPORT_GUIDE.md and this file with actual results.

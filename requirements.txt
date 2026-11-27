@@ -1,6 +1,7 @@
 # Runtime dependencies. Install PyTorch first if you need a specific CUDA build:
-#   https://pytorch.org/get-started/locally/   (e.g. pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121)
-# Versions below were verified on Python 3.9.6 / macOS (Apple M4, MPS). Any recent compatible release should work.
+#   https://pytorch.org/get-started/locally/   (e.g. pip install torch torchvision --index-url https://download.pytorch.org/whl/cu126)
+# Verified with: Python 3.12.16 / Windows 11 / RTX 3080 (torch 2.14.1+cu126, torchvision 0.29.1+cu126) and
+# Python 3.9.6 / macOS (Apple M4, MPS, torch 2.8.0). Any recent compatible release should work.
 torch>=2.1
 torchvision>=0.16
 numpy>=1.24
@@ -11,4 +12,6 @@ matplotlib>=3.7
 pandas>=2.0
 pyyaml>=6.0
 tqdm>=4.65
-imagehash>=4.3      # perceptual hashing for near-duplicate detection
+imagehash>=4.3          # perceptual hashing for near-duplicate detection
+huggingface-hub>=0.24   # dataset download from the pinned GenImage mirror (src/data/genimage_hf.py)
+pyarrow>=15             # reads the mirror's Arrow shards

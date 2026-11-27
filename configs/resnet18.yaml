@@ -1,7 +1,6 @@
-# Model B: ImageNet-pretrained ResNet-18, fully fine-tuned.
-# NOTE: this is the project's REFERENCE implementation (src/models/resnet18.py). The ResNet-18
-# model is assigned to another group member; replace/augment with their implementation when
-# available (see docs/ARCHITECTURE.md, "Collaborator integration").
+# Model B: ImageNet-pretrained ResNet-18, fully fine-tuned: the collaborator's model definition
+# (collaborator/resnet18_project, integrated as src/models/resnet18.py) trained with the SHARED protocol
+# (same manifests, preprocessing, Adam, early stopping on val loss) so the comparison with the CNN is fair.
 inherits: cnn.yaml
 experiment_name: resnet18
 

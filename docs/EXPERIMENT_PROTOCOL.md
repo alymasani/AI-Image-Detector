@@ -35,13 +35,28 @@ record it.
 ### Hyperparameter change log
 | Date | Model | Change | Reason (validation evidence) |
 |---|---|---|---|
-| – | – | none yet | – |
+| 2026-11-26 | both | **No hyperparameter changes.** Pilot and intermediate validation curves raised no reason to change lr, batch or patience. `num_workers` stayed at 4 (≈1,100 img/s measured). `data.cache_dir=data/cache` was enabled; it is bit-identical to on-the-fly preprocessing (tested). | Stage C/D logs (VALIDATION_REPORT §B) |
+| 2026-11-26 | ResNet-18 | Model definition replaced by the collaborator's `build_resnet18` (default `Linear` init instead of Xavier). Decided before any training on real data. | ARCHITECTURE.md |
+
+Observation recorded *after* test evaluation (therefore **not acted on**): four of the 9 runs ended at the
+`max_epochs=20` cap instead of early stopping:
+
+| Run | Best epoch |
+|---|---|
+| E4 no-JPEG | 17 |
+| E7 CNN seed 123 | 20 |
+| E7 CNN seed 2026 | 17 |
+| E8 ResNet-18 from scratch | 19 |
+
+Seed 123 and E8 were still improving at the cap. The primary CNN (seed 42) instead early-stopped at epoch 12 on a noisy
+validation curve. Changing the epoch budget now would mean selecting the configuration with test results already
+known, so it is reported as a limitation (seed variability, REPORT_GUIDE.md) rather than changed.
 
 ## Staged execution (Phase 6)
 | Stage | Command | Purpose |
 |---|---|---|
 | A synthetic smoke | `python scripts/reproduce.py smoke` | software path end to end (done, see VALIDATION_REPORT) |
-| B tiny real | `python -m src.train --config configs/cnn.yaml --set data.train_limit=16 data.val_limit=16 data.augment.hflip=false data.augment.random_crop_padding=0 model.dropout=0 training.max_epochs=30 training.early_stopping_patience=30 experiment_name=cnn_tiny` | CNN memorises 32 real images |
+| B tiny real | `python .dev/tests/stage_b_tiny_overfit.py` (dev-only, 300 Adam steps on one fixed batch). The pipeline alternative is `python -m src.train --config configs/cnn.yaml --set data.train_limit=16 data.val_limit=16 data.augment.hflip=false data.augment.random_crop_padding=0 model.dropout=0 training.max_epochs=30 training.early_stopping_patience=30 experiment_name=cnn_tiny` | CNN memorises 32 real images (done: 1.00 from step 40) |
 | C pilot | `python scripts/run_experiments.py E1_cnn E2_resnet18 --stage pilot` | 1k train images, loss/time/memory |
 | D intermediate | `python scripts/run_experiments.py E1_cnn E2_resnet18 --stage intermediate` | 5k train images, lr sanity, runtime estimate |
 | E full | `python scripts/run_experiments.py E1_cnn E2_resnet18` | primary models + held-out evaluation + E3 |

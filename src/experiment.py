@@ -260,6 +260,32 @@ def seeds_table(results: Path, runs_dir: Path) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+COLLABORATOR_RESULTS = PROJECT_ROOT / "collaborator" / "resnet18_project" / "results"
+
+
+def collaborator_table(results_dir: Path = COLLABORATOR_RESULTS) -> pd.DataFrame:
+    """The collaborator's own ResNet-18 runs (their split, their recipe), mean/std over their seeds.
+
+    Their protocol differs from E2: AdamW + cosine LR for a fixed 8 epochs, best epoch by validation
+    AUROC, bicubic resizing, no random-crop augmentation, train/val = the first rows of the class-sorted
+    mirror, test = all 6,000/class of SD 1.4 val and Midjourney val with Midjourney's own reals. The
+    numbers are reported as supplementary evidence and are NOT comparable cell-by-cell with E1/E2.
+    """
+    path = results_dir / "metrics.csv"
+    if not path.exists():
+        return pd.DataFrame()
+    m = pd.read_csv(path)
+    rows = []
+    for (model, test), g in m.groupby(["model", "test_set"], sort=False):
+        row = {"source": "collaborator/resnet18_project", "model": model, "test_set": test,
+               "seeds": ",".join(str(s) for s in sorted(g.seed)), "runs": len(g)}
+        for k in ("accuracy", "f1", "auroc"):
+            row[f"{k}_mean"] = float(g[k].mean())
+            row[f"{k}_std"] = float(g[k].std(ddof=1)) if len(g) > 1 else np.nan
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
 def all_evaluations_table(summaries: Path) -> pd.DataFrame:
     rows = []
     for p in sorted(summaries.glob("eval_*.json")):
@@ -334,6 +360,9 @@ def generate_report_assets(results_dir: str = "results", data_root: Optional[str
     allev = all_evaluations_table(summaries)
     allev.to_csv(tables / "all_evaluations.csv", index=False)
     seeds_table(results, runs).to_csv(tables / "seed_repeatability.csv", index=False)
+    collab = collaborator_table()
+    if not collab.empty:
+        collab.to_csv(tables / "collaborator_resnet18_runs.csv", index=False)
 
     histories = {}
     for exp, model in prim.items():

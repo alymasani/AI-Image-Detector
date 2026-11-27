@@ -1,0 +1,91 @@
+{
+  "images": 56000,
+  "unique_files": 52000,
+  "exclusions": {
+    "exact_duplicate": 3
+  },
+  "near_duplicate_pairs": 8,
+  "near_duplicate_pairs_across_leakage_pairs": 6,
+  "metadata_baseline": [
+    {
+      "baseline": "raw-file metadata",
+      "evaluated_on": "train",
+      "n": 40000,
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "features": "width, height, aspect_ratio, log_file_size, bytes_per_pixel, jpeg_quality, format_JPEG, format_PNG, mode_RGB, mode_L, mode_RGBA, mode_CMYK, mode_P"
+    },
+    {
+      "baseline": "raw-file metadata",
+      "evaluated_on": "val",
+      "n": 4000,
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "features": "width, height, aspect_ratio, log_file_size, bytes_per_pixel, jpeg_quality, format_JPEG, format_PNG, mode_RGB, mode_L, mode_RGBA, mode_CMYK, mode_P"
+    },
+    {
+      "baseline": "raw-file metadata",
+      "evaluated_on": "test_sd",
+      "n": 4000,
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "features": "width, height, aspect_ratio, log_file_size, bytes_per_pixel, jpeg_quality, format_JPEG, format_PNG, mode_RGB, mode_L, mode_RGBA, mode_CMYK, mode_P"
+    },
+    {
+      "baseline": "raw-file metadata",
+      "evaluated_on": "test_mj",
+      "n": 4000,
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "features": "width, height, aspect_ratio, log_file_size, bytes_per_pixel, jpeg_quality, format_JPEG, format_PNG, mode_RGB, mode_L, mode_RGBA, mode_CMYK, mode_P"
+    },
+    {
+      "baseline": "raw-file metadata",
+      "evaluated_on": "test_mj_native",
+      "n": 4000,
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "features": "width, height, aspect_ratio, log_file_size, bytes_per_pixel, jpeg_quality, format_JPEG, format_PNG, mode_RGB, mode_L, mode_RGBA, mode_CMYK, mode_P"
+    },
+    {
+      "baseline": "standardised 224px JPEG size",
+      "evaluated_on": "train",
+      "n": 40000,
+      "accuracy": 0.55225,
+      "auroc": 0.56941682625,
+      "features": "standardized_jpeg_bytes"
+    },
+    {
+      "baseline": "standardised 224px JPEG size",
+      "evaluated_on": "val",
+      "n": 4000,
+      "accuracy": 0.535,
+      "auroc": 0.5419579999999999,
+      "features": "standardized_jpeg_bytes"
+    },
+    {
+      "baseline": "standardised 224px JPEG size",
+      "evaluated_on": "test_sd",
+      "n": 4000,
+      "accuracy": 0.54425,
+      "auroc": 0.5544815,
+      "features": "standardized_jpeg_bytes"
+    },
+    {
+      "baseline": "standardised 224px JPEG size",
+      "evaluated_on": "test_mj",
+      "n": 4000,
+      "accuracy": 0.3655,
+      "auroc": 0.289384125,
+      "features": "standardized_jpeg_bytes"
+    },
+    {
+      "baseline": "standardised 224px JPEG size",
+      "evaluated_on": "test_mj_native",
+      "n": 4000,
+      "accuracy": 0.35725,
+      "auroc": 0.28588199999999997,
+      "features": "standardized_jpeg_bytes"
+    }
+  ]
+}

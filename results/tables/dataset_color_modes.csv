@@ -1,0 +1,17 @@
+manifest,class_name,generator,mode,images
+test_mj,ai,midjourney,RGB,2000
+test_mj,real,real,L,43
+test_mj,real,real,RGB,1957
+test_mj_native,ai,midjourney,RGB,2000
+test_mj_native,real,real,L,32
+test_mj_native,real,real,RGB,1968
+test_sd,ai,sdv14,RGB,2000
+test_sd,real,real,L,43
+test_sd,real,real,RGB,1957
+train,ai,sdv14,RGB,20000
+train,real,real,CMYK,3
+train,real,real,L,294
+train,real,real,RGB,19703
+val,ai,sdv14,RGB,2000
+val,real,real,L,30
+val,real,real,RGB,1970

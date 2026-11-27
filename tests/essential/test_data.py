@@ -129,30 +129,70 @@ def test_cache_is_bit_identical_to_on_the_fly(manifests, synthetic_root, data_cf
         assert torch.equal(a[i][0], b[i][0])
 
 
-def test_selective_download_plan_matches_split_builder_order(synthetic_root):
-    """The downloader must fetch exactly the leading candidates the split builder consumes."""
-    from src.data.create_splits import Selector, pool_plan
-    from src.data.genimage_remote import Member, plan_downloads
+def test_selective_download_keeps_exactly_the_leading_candidates(tmp_path):
+    """Rows the downloader keeps (key below the pool fraction) are a prefix of the builder's permutation."""
+    from src.data.create_splits import OFFICIAL_LISTING, Selector, candidate_key, key_fraction
+    from src.data.genimage_hf import sampling_fractions
 
     cfg = suite_config()
-    prefixes = {"sdv14": cfg["dataset"]["generators"]["sdv14"]["folder"],
-                "midjourney": cfg["dataset"]["generators"]["midjourney"]["folder"]}
-    indexes = {}
-    for gen, prefix in prefixes.items():
-        for spec in pool_plan(cfg):
-            if spec["generator"] != gen:
-                continue
-            folder = synthetic_root / prefix / spec["subdir"]
-            names = sorted(p.name for p in folder.iterdir() if p.suffix.lower() in (".png", ".jpeg", ".jpg"))
-            indexes.setdefault(gen, {})[f"{prefix}/{spec['subdir']}"] = [
-                Member(f"{prefix}/{spec['subdir']}/{n}", 8, i, 1000 + i, 1000 + i, 0, 0) for i, n in enumerate(names)]
-    plan = plan_downloads(cfg, indexes, prefixes, margin=0.0, extra={})
-    sel = Selector(synthetic_root, int(cfg["splits"]["seed"]))
-    for spec in pool_plan(cfg):
-        folder_rel = f"{prefixes[spec['generator']]}/{spec['subdir']}"
-        order = sel.permutation(spec["pool"], folder_rel, cfg["dataset"]["image_extensions"])
-        planned = [m.name for m in plan[spec["pool"]]]
-        assert planned == order[: len(planned)]
+    cfg["splits"]["train_per_class"] = 150
+    folder = tmp_path / "gen" / "train" / "ai"
+    folder.mkdir(parents=True)
+    names = [f"{i % 1000:03d}_sdv4_{i:05d}.png" for i in range(2000)]
+    (folder / OFFICIAL_LISTING).write_text("\n".join(names))
+    pool, fraction = sampling_fractions(cfg, "sdv14", "train", {"fake": 2000, "real": 2000}, 0.03, {})["fake"]
+    assert pool == "sdv14/train/ai" and 0 < fraction < 1
+    seed = int(cfg["splits"]["seed"])
+    kept = {f"gen/train/ai/{n}" for n in names if key_fraction(candidate_key(seed, pool, n)) < fraction}
+    order = Selector(tmp_path, seed).permutation(pool, "gen/train/ai", [".png"])
+    assert set(order[: len(kept)]) == kept and len(kept) >= 150
+
+
+def test_downloader_writes_official_layout_and_listing(tmp_path, monkeypatch):
+    """One synthetic Arrow shard -> selected files in <folder>/<partition>/<ai|nature>, full listing, md5 checked."""
+    import hashlib
+    import io
+
+    import pyarrow as pa
+
+    from src.data import genimage_hf
+    from src.data.create_splits import candidate_key, key_fraction
+
+    rows = {"image_path": [], "image": [], "label": [], "md5": []}
+    for i in range(20):
+        label = i % 2
+        buf = io.BytesIO()
+        Image.new("RGB", (8, 8), (i, 0, 0)).save(buf, format="PNG")
+        rows["image_path"].append(f"stable_diffusion_v_1_4/train/{'ai' if label else 'nature'}/{i:03d}.png")
+        rows["image"].append(buf.getvalue())
+        rows["label"].append(label)
+        rows["md5"].append(hashlib.md5(buf.getvalue()).hexdigest())
+    shard = tmp_path / "shard.arrow"
+    table = pa.table(rows)
+    with pa.OSFile(str(shard), "wb") as sink, pa.ipc.new_stream(sink, table.schema) as writer:
+        writer.write_table(table)
+    monkeypatch.setattr(genimage_hf, "fetch", lambda name, cache: shutil.copy(shard, tmp_path / "copy.arrow")
+                        and tmp_path / "copy.arrow")
+    d = suite_config()["dataset"]
+    fractions = {"fake": ("sdv14/train/ai", 0.5), "real": ("sdv14/train/nature", 1.0)}
+    root = tmp_path / "root"
+    res = genimage_hf.process_shard("s0", "leaf", root, "SD", "train", fractions, 7, d, tmp_path / "prog",
+                                    tmp_path / "cache")
+    assert sorted(res["listing"]["fake"]) == [f"{i:03d}.png" for i in range(1, 20, 2)]
+    written_ai = sorted(p.name for p in (root / "SD" / "train" / "ai").iterdir())
+    expected_ai = sorted(n for n in res["listing"]["fake"]
+                         if key_fraction(candidate_key(7, "sdv14/train/ai", n)) < 0.5)
+    assert written_ai == expected_ai
+    assert len(list((root / "SD" / "train" / "nature").iterdir())) == 10
+    assert not (tmp_path / "copy.arrow").exists()          # shard deleted after use
+    assert genimage_hf.process_shard("s0", "leaf", root, "SD", "train", fractions, 7, d, tmp_path / "prog",
+                                     tmp_path / "cache") == json_roundtrip(res)   # resume skips finished shard
+
+
+def json_roundtrip(obj):
+    import json
+
+    return json.loads(json.dumps(obj))
 
 
 def test_partial_pool_stops_at_missing_candidate(tmp_path):

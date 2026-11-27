@@ -12,9 +12,22 @@
 - **GenImage dataset:** M. Zhu, H. Chen, Q. Yan, X. Huang, G. Lin, W. Li, Z. Tu, H. Hu, J. Hu, Y. Wang, "GenImage: A
   Million-Scale Benchmark for Detecting AI-Generated Image," NeurIPS 2023 (arXiv:2306.08571);
   https://github.com/GenImage-Dataset/GenImage, CC BY-NC-SA 4.0. Its real images come from ImageNet.
-- **Collaborator contribution:** the ResNet-18 model is assigned to another Group 38 member. `src/models/resnet18.py`
-  is currently a reference implementation (no collaborator code was in the repository on 2026-11-25). Update this
-  section when their implementation/checkpoint is integrated.
+- **Collaborator contribution (Group 38 ResNet-18 project, "Spotting the Unseen Generator").** Their project is kept
+  unmodified under `collaborator/resnet18_project/`: code, notebook, tests, three-seed results and figures. What was
+  integrated from it:
+  - **Model construction:** `src/models/resnet18.py` reproduces their `build_resnet18`: Torchvision ResNet-18,
+    `IMAGENET1K_V1`, a new `Linear(512, 2)` head with default initialisation, full fine-tuning, 0 = real / 1 = AI.
+  - **Dataset source:** the choice of the Hugging Face mirror `nebula/GenImage-arrow`, the pinned revision, and the
+    fetch/retry and Arrow-row reading code, adapted in `src/data/genimage_hf.py`. Their "first N rows" selection was
+    replaced by seeded hash sampling (see DATASET.md).
+  - **Their own results:** reported separately as their recipe. `results/tables/collaborator_resnet18_runs.csv` gives
+    mean ± std over their seeds 0–1–2. Those numbers come from their own splits and preprocessing, so they are not
+    directly comparable with E2.
+
+  E2 trains their model definition under this repository's shared protocol (same manifests, preprocessing, optimiser
+  settings and early stopping as the CNN), so the CNN-vs-ResNet comparison is controlled.
+- **Dataset mirror:** `nebula/GenImage-arrow` on Hugging Face, an Arrow re-packaging of GenImage. Its licence follows
+  GenImage (CC BY-NC-SA 4.0).
 
 ## Libraries
 PyTorch (A. Paszke et al., "PyTorch: An Imperative Style, High-Performance Deep Learning Library," NeurIPS 2019),
@@ -28,7 +41,7 @@ Pillow, ImageHash (perceptual hashing), PyYAML, pytest.
   Detection Datasets," ECCV Workshops 2024 (arXiv:2403.17608).
 
 ## AI assistance
-Claude Code (Anthropic, model Claude Opus 5.5) was used on 2026-11-25 to implement the repository scaffolding, data
+Claude Code (Anthropic, model Claude Opus 5.5) was used on 2026-11-25 and 2026-11-26 to implement the repository scaffolding, data
 pipeline, training/evaluation infrastructure, tests and documentation, following the group's written specification
 (`ENSF 519.docx`) and approved proposal. The group must review, understand and take responsibility for this code and
 state the AI assistance in the report. It must not be presented as entirely unaided student work.

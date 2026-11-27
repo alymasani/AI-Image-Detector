@@ -1,0 +1,16 @@
+{
+  "experiment": "resnet18_seed2026",
+  "device": "cuda",
+  "results": [
+    {
+      "batch_size": 1,
+      "ms_per_batch": 1.99,
+      "ms_per_image": 1.99
+    },
+    {
+      "batch_size": 32,
+      "ms_per_batch": 8.778,
+      "ms_per_image": 0.274
+    }
+  ]
+}

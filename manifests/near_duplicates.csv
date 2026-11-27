@@ -1,0 +1,9 @@
+a_sample_id,a_manifest,a_path,b_sample_id,b_manifest,b_path,hamming,leakage_pair
+c5fbfffc9028ba06,train,stable_diffusion_v_1_4/imagenet_ai_0419_sdv4/train/nature/n04328186_23132.JPEG,9c37bfa479910c21,val,stable_diffusion_v_1_4/imagenet_ai_0419_sdv4/val/nature/ILSVRC2012_val_00038400.JPEG,4,True
+c5fbfffc9028ba06,train,stable_diffusion_v_1_4/imagenet_ai_0419_sdv4/train/nature/n04328186_23132.JPEG,1f09bd4753dd33a1,val,stable_diffusion_v_1_4/imagenet_ai_0419_sdv4/val/ai/574_sdv4_00074.png,4,True
+b3a3570edd209ce1,train,stable_diffusion_v_1_4/imagenet_ai_0419_sdv4/train/nature/n03196217_4139.JPEG,76254ac1f6059c4d,train,stable_diffusion_v_1_4/imagenet_ai_0419_sdv4/train/nature/n03729826_5383.JPEG,4,False
+76254ac1f6059c4d,train,stable_diffusion_v_1_4/imagenet_ai_0419_sdv4/train/nature/n03729826_5383.JPEG,7ea26d378caa9fcf,test_mj,Midjourney/imagenet_midjourney/val/ai/722_midjourney_198.png,4,True
+76254ac1f6059c4d,train,stable_diffusion_v_1_4/imagenet_ai_0419_sdv4/train/nature/n03729826_5383.JPEG,7ea26d378caa9fcf,test_mj_native,Midjourney/imagenet_midjourney/val/ai/722_midjourney_198.png,4,True
+e022ff56f4947a4a,train,stable_diffusion_v_1_4/imagenet_ai_0419_sdv4/train/ai/805_sdv4_00155.png,d0da4b358b18dfa2,train,stable_diffusion_v_1_4/imagenet_ai_0419_sdv4/train/ai/574_sdv4_00026.png,4,False
+e4687d13f4d38e0e,train,stable_diffusion_v_1_4/imagenet_ai_0419_sdv4/train/ai/487_sdv4_00064.png,c8e38842794a297f,test_mj,Midjourney/imagenet_midjourney/val/ai/623_midjourney_100.png,4,True
+e4687d13f4d38e0e,train,stable_diffusion_v_1_4/imagenet_ai_0419_sdv4/train/ai/487_sdv4_00064.png,c8e38842794a297f,test_mj_native,Midjourney/imagenet_midjourney/val/ai/623_midjourney_100.png,4,True

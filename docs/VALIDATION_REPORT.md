@@ -1,57 +1,129 @@
 # Validation report
 
-All entries record commands actually executed on 2026-11-25 on the development machine below. Synthetic-fixture
-results verify **software behaviour only** and are not GenImage results.
+Every entry records a command that was actually executed. Synthetic-fixture results verify **software behaviour only**
+and are not GenImage results. Two machines were used:
+- the Apple M4 development machine on 2026-11-25 (§A);
+- the Windows RTX 3080 machine that produced every real result, on 2026-11-26 (§B).
 
-## Environment (measured by `python -m src.utils`)
-Apple M4 (10 CPU cores), 16 GB RAM, macOS (Darwin 24.6.0), Python 3.9.6, torch 2.8.0, torchvision 0.23.0,
-numpy 2.0.2, pandas 2.3.3, scikit-learn 1.6.1, scipy 1.13.1, Pillow 11.3.0, ImageHash 4.3.2, matplotlib 3.9.4.
-CUDA: **not available**. MPS: available (used for smoke training). Free disk ≈ 29.6 GB.
-The intended RTX 3080 / TALC environments were **not** available, so CUDA mixed precision is implemented but
-**not executed**.
+---------------------------------------------------------------------------------------------------------------------
+## B. Windows / RTX 3080 (2026-11-26): real data, all reported results
 
-## Essential tests (`tests/essential`, retained in the repository)
-Command: `.venv/bin/python -m pytest -q tests/essential` → **31 passed, 1 skipped, 0 failed** (≈11 s).
-Skipped: `test_cnn_cuda_forward` (no CUDA on this machine).
-
-| File | Covers |
+### Environment (`python -m src.utils`)
+| Item | Value |
 |---|---|
-| `test_data.py` (11) | manifest counts/labels/relative paths; corrupt file excluded + logged; gray/RGBA kept and converted; leakage checks pass; injected val→test leak is detected; split generation reproducible (identical manifest SHA-256); RGBA→white compositing; corrupt image raises; tensor shape/dtype/label; deterministic eval vs stochastic train transforms; aspect-preserving crop; cache bit-identical to on-the-fly |
-| `test_models.py` (9) | CNN output N×2 for batch 1/3/8, finite; exactly 4 blocks, no softmax, 1,189,794 params; finite loss, all params get nonzero grads and change after Adam step; eval deterministic / dropout active in train; ResNet-18 2-way head, 11,177,538 trainable, frozen variant trains only fc; checkpoint round-trip equality; CUDA forward (skipped) |
-| `test_metrics.py` (8) | hand-calculated confusion/acc/P/R/F1/FPR/FNR/AUROC (AUROC 13/16); agreement with scikit-learn; inclusive 0.5 threshold; zero-denominator and single-class handling; chance baselines + degradation arithmetic; bootstrap determinism; cross-generator CI = 0 for identical sets; McNemar |
-| `test_training.py` (4) | early stopping (patience, min_delta, reset, NaN); CPU train 1 epoch → best/last checkpoints → resume to epoch 2 with full history columns; evaluation export columns, threshold consistency, shared real images scored identically in test_sd and test_mj |
+| OS | Windows 11 (10.0.26300) |
+| CPU | Intel, 20 logical CPUs |
+| GPU | NVIDIA GeForce RTX 3080, 10 GB, CUDA 12.6 |
+| Software | Python 3.12.16, torch 2.14.1+cu126, torchvision 0.29.1+cu126 |
+| Environment | `uv`-managed `.venv` |
 
-Fix made during testing: the hand-calculated AUROC expectation in `test_metrics.py` was wrong (14/16); recomputed
-pairwise as 13/16 = 0.8125, which matches scikit-learn. The implementation was correct.
+**Windows note.** Smart App Control twice blocked a freshly installed SciPy/scikit-learn DLL ("An Application Control
+policy has blocked this file"):
+- `scipy ... _dierckx`, during the first test run;
+- `sklearn.linear_model._sgd_fast`, during the first audit.
 
-## Stage A: synthetic end-to-end smoke (`python scripts/reproduce.py smoke`)
-Synthetic GenImage-shaped tree (40 images/folder + gray/RGBA/corrupt edge cases) → manifests (train 24+24, val/test
-8+8) → leakage check **PASSED** → CNN and ResNet-18 (ImageNet weights downloaded and verified) trained 3 epochs on MPS
-→ evaluation on test_sd/test_mj/test_mj_native → extra-JPEG q50 robustness → latency → report assets (8 figures,
-all tables). Completed in ≈65 s. The synthetic classes are trivially separable (100% accuracy), as designed for a
-pipeline test.
-Bug found and fixed: the report generator crashed when no evaluation existed yet (plot guard added). Legend overlap in
-the main comparison figure was fixed.
+Both runs succeeded when re-run unchanged. If it happens, re-run the command.
 
-## Development diagnostics (`.dev/tests/dev_diagnostics.py`, git-ignored)
-- **Tiny-overfit (Phase 3):** 32 pure-noise images with random balanced labels, dropout 0, no augmentation, Adam 1e-3,
-  MPS: eval-mode training accuracy 0.50 at step 20 → **1.00 from step 40** to 200 (loss ≈ 0). The model, loss,
-  gradients and optimiser can memorise. (The step-20 lag is BatchNorm running statistics catching up.)
-  Stage B (32 *real* GenImage images) is **PENDING** on the dataset.
-- **Pretrained ResNet-18:** loaded `conv1.weight` equals the Torchvision hub file `resnet18-f37072fd.pth`; all
-  parameters `requires_grad=True`.
-- **Throughput (MPS, batch 32, 224 px, synthetic tensors, compute only):** CNN 87 img/s, ResNet-18 118 img/s.
-  **Estimates:** ≈ 7.7 min (CNN) and ≈ 5.7 min (ResNet) of compute per 40k-image epoch, excluding data loading. The
-  CNN is slower despite fewer parameters because its first block runs 32-channel 3×3 convolutions at full 224×224
-  resolution.
-- **JPEG quality estimator:** PIL-encoded q=50/75/90/95 → estimated 50.0/74.7/90.1/95.0.
-- **Generator-folder discovery:** a nested `stable_diffusion_v_1_4/imagenet_ai_0419_sdv4/val/{ai,nature}` tree was
-  found and suggested by `prepare_data.py check`.
-- Lint: `ruff check --select F,E9 src scripts` clean after removing 5 unused imports.
+### Essential tests
+`python -m pytest tests/essential -q` → **35 passed, 0 skipped** (≈10 s). This now includes `test_cnn_cuda_forward` (CUDA)
+and the two Hugging Face downloader tests. They use a synthetic Arrow shard and check:
+- the downloader keeps exactly the leading candidates of the split builder's permutation;
+- it writes the official layout and the listing files;
+- it resumes correctly.
 
-## Not yet verified (blocked on dataset / hardware)
-GenImage acquisition, real manifests, leakage audit on real data, bias audit, Stage B–E training, all held-out
-results, CUDA AMP path, multi-worker loading on Windows, TALC job script.
+The suite was re-run after the code changes listed below (final run in the "Final audit" section).
 
-## Final audit
-Pending: performed after real experiments (Phase 14).
+### Stage A smoke on CUDA
+`python scripts/reproduce.py smoke` passed on CUDA (fp16 autocast + GradScaler) in about 2 min, producing 7 figures. This was the first execution of the CUDA mixed-precision path.
+
+### Data acquisition and manifests
+`python -m src.data.genimage_hf --data-root data/genimage --workers 4` downloaded from the pinned mirror revision
+`3f4b9f92…` and kept 23 GB:
+
+| Folder | Images kept |
+|---|---|
+| SD 1.4 train/ai | 20,531 |
+| SD 1.4 train/nature | 20,840 |
+| SD 1.4 val (each class) | 6,000 |
+| Midjourney val (each class) | 6,000 |
+
+`prepare_data.py check` → READY.
+
+`prepare_data.py manifests --workers 16` produced every manifest at exactly the requested counts:
+- train: 20,000 + 20,000
+- val, test_sd, test_mj and test_mj_native: 2,000 + 2,000 each
+
+There were no shortfalls, and no candidate was missing from the download. Three images were excluded as exact
+duplicates. Eight pHash near-duplicate pairs were found; six cross a leakage pair, and all of them were inspected
+visually: they are different images, not copies (DATASET.md). **The leakage check PASSED.**
+
+**Bug found and fixed (performance only).** The first manifest build took **249 min**.
+- Cause: `Selector.take` rebuilt the look-ahead chunk, with one `exists()` call per file, for every *accepted* image, so
+  the work grew quadratically.
+- Fix: the chunk is now built only when the next candidate has not been inspected yet.
+- Result: a rebuild into a scratch folder took **1 min 50 s**, and all five manifests and `near_duplicates.csv` are
+  **byte-identical** to the original build.
+
+The near-duplicate loop also stopped using per-row `iloc`.
+
+### Cache and audit
+`prepare_data.py cache` built two caches of 52,000 files each:
+
+| Cache | Size | Build time |
+|---|---|---|
+| q95 | 1.3 GB | 63 s |
+| no-JPEG (for E4) | 4.4 GB | 103 s |
+
+`prepare_data.py audit` results:
+- **Raw metadata baseline:** accuracy and AUROC 1.000 on every manifest. Every real image is a JPEG and every AI image
+  is a PNG.
+- **Standardised-JPEG-size baseline:** AUROC 0.554 on test_sd and 0.289 on test_mj (the size signal reverses on
+  Midjourney).
+
+**Bug found and fixed.** The audit figure crashed with `Grouper for 'split' not 1-dimensional`. Renaming `manifest` to
+`split` created a second `split` column, so the row-level column is now dropped first.
+
+### Staged training
+| Stage | Result |
+|---|---|
+| B: 32 real images (`.dev/tests/stage_b_tiny_overfit.py`) | Augmentation off, dropout 0, Adam 1e-3. Eval-mode accuracy 0.94 at step 20, **1.00 from step 40**, loss 1e-5 at step 300 (19 s) |
+| C: pilot (1k train / 1k val) | Both models train. CNN best val loss 0.438, ResNet 0.314. 80 s in total |
+| D: intermediate (5k train / 4k val) | CNN best val loss 0.397 (epoch 6), ResNet 0.235 (epoch 2). About 1,100 img/s with 4 loader workers, so `num_workers` stayed at 4 |
+| E: full (40k train) | CNN early-stopped at epoch 12 (best 8). ResNet-18 early-stopped at epoch 11 (best 7). See `computational_comparison.csv` |
+
+### Held-out evaluation
+- Ran automatically after Stage E, together with E3 JPEG robustness and latency.
+- Optional experiments E4, E6, E7 (×4) and E8 were run to completion; none failed.
+
+**Bug found and fixed (reporting precision).** Prediction CSVs were written with `"%.6f"`.
+- Effect: every probability below 5e-7 was rounded to 0. The AUROC that `statistics.json` recomputes from the CSVs
+  therefore differed slightly from the in-memory AUROC (ResNet-18 test_mj: 0.7262 vs 0.7272).
+- Fix: probabilities are now written with `"%.9g"`, which round-trips float32 exactly.
+- All 9 checkpoints were **re-evaluated without retraining**. The bootstrap point estimates now equal the main-table
+  values exactly for all six primary rows.
+
+### Report assets
+- `python scripts/reproduce.py report` produced 8 figures and the result tables. There are no PENDING rows.
+- `reproduce.py checkpoints register` recorded the SHA-256 hashes of `checkpoints/cnn/best.pt` (`cfe71097…`) and
+  `checkpoints/resnet18/best.pt` (`31bb3092…`).
+
+---------------------------------------------------------------------------------------------------------------------
+## A. Apple M4 development machine (2026-11-25): synthetic only
+
+Environment: Apple M4, macOS, Python 3.9.6, torch 2.8.0 (MPS, no CUDA).
+- `pytest tests/essential` → 31 passed, 1 skipped (CUDA).
+- `reproduce.py smoke` → full synthetic pipeline on MPS in about 65 s.
+
+Fixes made at that stage:
+- a wrong hand-computed AUROC expectation in a test (the implementation was correct);
+- a report-generator crash when no evaluations existed yet.
+
+Development diagnostics (`.dev/`, git-ignored):
+- a random-label tiny-overfit check reached 1.00 by step 40;
+- the pretrained ResNet-18 weights match the Torchvision hub file `resnet18-f37072fd.pth`;
+- the JPEG quality estimator reads PIL q50/75/90/95 as 50.0/74.7/90.1/95.0;
+- `ruff check --select F,E9` is clean.
+
+## Not verified
+- The TALC/SLURM job script (`scripts/hpc/train.slurm`) was never submitted.
+- Checkpoint hosting URLs are not set (files exist locally only).
